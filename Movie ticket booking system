@@ -1,0 +1,180 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_NAME_LENGTH 50
+
+struct Movie {
+    char title[MAX_NAME_LENGTH];
+    int availableSeats;
+    float ticketPrice;
+    struct Movie *next;
+};
+
+struct Transaction {
+    char movieTitle[MAX_NAME_LENGTH];
+    int numTickets;
+    float totalPrice;
+    struct Transaction *next;
+};
+
+struct Movie *movieList = NULL;
+struct Transaction *transactionList = NULL;
+
+void insertMovie() {
+    struct Movie *newMovie = (struct Movie *)malloc(sizeof(struct Movie));
+    printf("Enter movie title: ");
+    scanf("%s", newMovie->title);
+    printf("Enter available seats: ");
+    scanf("%d", &newMovie->availableSeats);
+    printf("Enter ticket price: ");
+    scanf("%f", &newMovie->ticketPrice);
+    newMovie->next = movieList;
+    movieList = newMovie;
+    printf("Movie inserted successfully.\n");
+}
+
+void viewMovies() {
+    printf("Available Movies:\n");
+    struct Movie *current = movieList;
+    while (current != NULL) {
+        printf("Title: %s\n", current->title);
+        printf("Available Seats: %d\n", current->availableSeats);
+        printf("Ticket Price: %.2f\n", current->ticketPrice);
+        printf("--------------------------\n");
+        current = current->next;
+    }
+}
+
+struct Movie *findMovie(const char *title) {
+    struct Movie *current = movieList;
+    while (current != NULL) {
+        if (strcmp(current->title, title) == 0) {
+            return current;
+        }
+        current = current->next;
+    }
+    return NULL;
+}
+
+void bookTicket() {
+    char title[MAX_NAME_LENGTH];
+    int n;
+    abc:
+    printf("Enter movie title: ");
+    scanf("%s", title);
+
+    struct Movie *selectedMovie = findMovie(title);
+    if (selectedMovie != NULL) {
+    
+		
+        printf("Enter number of tickets: ");
+        int numTickets;
+        scanf("%d", &numTickets);
+
+        if (numTickets <= selectedMovie->availableSeats) {
+            float totalPrice = numTickets * selectedMovie->ticketPrice;
+            selectedMovie->availableSeats -= numTickets;
+
+            struct Transaction *newTransaction = (struct Transaction *)malloc(sizeof(struct Transaction));
+            strcpy(newTransaction->movieTitle, selectedMovie->title);
+            newTransaction->numTickets = numTickets;
+            newTransaction->totalPrice = totalPrice;
+            newTransaction->next = transactionList;
+            transactionList = newTransaction;
+			printf("The total price is %f\n",totalPrice);
+			printf("Are you sure: 1 for yes 0 for no :");
+			scanf("%d",&n);
+			if(n==1)
+            	printf("Booking successful! Total price: %.2f\n", totalPrice);
+            else{
+            	goto abc;
+			}
+        } else {
+            printf("Not enough available seats.\n");
+        }
+    } else {
+        printf("Movie not found.\n");
+    }
+}
+
+void viewTransactions() {
+    printf("All Transactions:\n");
+    struct Transaction *current = transactionList;
+    while (current != NULL) {
+        printf("Movie: %s\n", current->movieTitle);
+        printf("Tickets: %d\n", current->numTickets);
+        printf("Total Price: %.2f\n", current->totalPrice);
+        printf("--------------------------\n");
+        current = current->next;
+    }
+}
+
+void exitMenu() {
+    printf("Exiting Movie Ticket System.\n");
+    // Free allocated memory for movies and transactions
+    while (movieList != NULL) {
+        struct Movie *temp = movieList;
+        movieList = movieList->next;
+        free(temp);
+    }
+    while (transactionList != NULL) {
+        struct Transaction *temp = transactionList;
+        transactionList = transactionList->next;
+        free(temp);
+    }
+    exit(0);
+}
+
+int main() {
+    int choice;
+    do {
+        printf("\nMovie Ticket System Menu:\n");
+        printf("1. Insert Movie\n");
+        printf("2. View Available Movies\n");
+        printf("3. Find Movie\n");
+        printf("4. Book Ticket\n");
+        printf("5. View All Transactions\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                insertMovie();
+                break;
+            case 2:
+                viewMovies();
+                break;
+            case 3: {
+                char title[MAX_NAME_LENGTH];
+                printf("Enter movie title: ");
+                scanf("%s", title);
+                struct Movie *foundMovie = findMovie(title);
+                if (foundMovie != NULL) {
+                    printf("Movie found:\n");
+                    printf("Title: %s\n", foundMovie->title);
+                    printf("Available Seats: %d\n", foundMovie->availableSeats);
+                    printf("Ticket Price: %.2f\n", foundMovie->ticketPrice);
+                } else {
+                    printf("Movie not found.\n");
+                }
+                break;
+            }
+            case 4:
+                bookTicket();
+                break;
+            case 5:
+                viewTransactions();
+                break;
+            case 6:
+                exitMenu();
+                break;
+            default:
+                printf("Invalid choice.\n");
+                break;
+        }
+    } while (1);
+
+    return 0;
+}
